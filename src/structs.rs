@@ -15,7 +15,7 @@ impl World {
     pub fn new(n: usize) -> Self {
         let blocks = {
             let mut v = Vec::new();
-            for i in (1..n).rev() {
+            for i in (1..=n).rev() {
                 v.push(Block(i));
             }
             v
@@ -46,7 +46,7 @@ impl World {
         Ok(())
     }
     pub fn resoldre(&mut self) {
-        self.moure_pila(self.n, PilaSelect::Pila1, PilaSelect::Pila3);
+        self.moure_pila(self.n , PilaSelect::Pila1, PilaSelect::Pila3);
         // Moure pila de n - 1 a la segona pila
         // Mou la base
         // Torna lo altre a la fila 1
@@ -54,6 +54,7 @@ impl World {
     }
     pub fn moure_pila(&mut self, n: usize, origin: PilaSelect, destinacio: PilaSelect) {
         if n == 1 {
+            println!("Estic movent block, n: {n}");
             self.moure_block(origin, destinacio).unwrap();
         } else {
             println!("--- pas 1");
@@ -61,7 +62,7 @@ impl World {
             println!("--- pas 2");
             self.moure_block(PilaSelect::Pila1, PilaSelect::Pila3).unwrap();
             println!("--- pas 3");
-            self.moure_pila(n - 1, PilaSelect::Pila2, PilaSelect::Pila1);
+            self.moure_pila(n - 1, PilaSelect::Pila2, PilaSelect::Pila3);
             println!("--- pas x");
         }
     }
