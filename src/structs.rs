@@ -12,6 +12,20 @@ pub struct World {
     pila3: Pila,
 }
 
+pub struct Generacio<'a> (&'a mut usize);
+
+impl Generacio<'_> {
+    pub fn inc(&mut self) {
+        *self.0 += 1;
+    }
+}
+
+impl Display for Generacio<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 impl World {
     pub fn new(n: usize) -> Self {
         let mut color_idx = 0;
@@ -94,12 +108,13 @@ impl World {
     }
 
     pub fn resoldre(&mut self, origin: PilaSelect, destinacio: PilaSelect) {
-        let gen = &mut String::from("0");
-        self.moure_pila(self.n , origin, destinacio, gen);
+        let mut g = 0;
+        let mut gen = Generacio(&mut g);
+        self.moure_pila(self.n , origin, destinacio, &mut gen);
         self.save_to_file(&format!("output/frame_{}.ppm", gen)).ok();
     }
 
-    pub fn moure_pila(&mut self, n: usize, origin: PilaSelect, destinacio: PilaSelect, t: &mut String ) -> Option<()> {
+    pub fn moure_pila(&mut self, n: usize, origin: PilaSelect, destinacio: PilaSelect, t: &mut Generacio ) -> Option<()> {
         use PilaSelect as Sel;
 
         if n == 1 {
@@ -122,7 +137,7 @@ impl World {
 
         Some(())
     }
-    pub fn moure_block(&mut self, origin: PilaSelect, destinacio: PilaSelect, gen: &mut String) -> Option<()>{
+    pub fn moure_block(&mut self, origin: PilaSelect, destinacio: PilaSelect, gen: &mut Generacio) -> Option<()>{
         if origin == destinacio { 
             println!("S'ha intentat moure a la mateixa pila ({origin}-{destinacio})");
             return None; 
@@ -130,8 +145,7 @@ impl World {
 
         println!("Al guardar '{gen}': {self}");
         self.save_to_file(&format!("output/frame_{}.ppm", gen)).ok()?;
-        let k: usize = gen.parse().unwrap();
-        *gen = (k + 1).to_string();
+        gen.inc();
 
         let block_origin: Option<&Block> = match origin {
             PilaSelect::Pila1 => self.pila1.0.last(),
