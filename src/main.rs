@@ -9,8 +9,10 @@ const WINDOW_HEIGHT: usize = 600;
 fn main() {
     let mut world = World::new(4);
 
-    dbg!(&world);
-    world.moure_block(PilaSelect::Pila1, PilaSelect::Pila2);
-    dbg!(&world);
+    println!("{}", world);
+    //world.moure_block(PilaSelect::Pila1, PilaSelect::Pila2);
+
+    world.resoldre();
+
 }
 
