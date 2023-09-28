@@ -25,7 +25,7 @@ fn main() {
 
     println!("{}", world);
 
-    world.resoldre(PilaSelect::Pila1, PilaSelect::Pila2);
+    world.resoldre(PilaSelect::Pila1, PilaSelect::Pila3);
 
     println!("Estat final: {}", world);
 }

@@ -2,6 +2,7 @@ use std::{error::Error, fs::File, io::Write, fmt::Display};
 
 use crate::{WINDOW_HEIGHT, WINDOW_WIDTH, utils::{rgb_to_str, draw_box}, BARRES_WIDTH, COLORS_SEQ, BLOCKS_WIDTH, BLOCKS_HEIGHT};
 
+use std::time::SystemTime;
 
 #[derive(Debug)]
 pub struct World {
@@ -57,23 +58,21 @@ impl World {
         }
 
         let parelles = [
-            (self.pila1.0.clone(),     WINDOW_WIDTH / 4),
+            (self.pila1.0.clone(), 3 * WINDOW_WIDTH / 4),
             (self.pila2.0.clone(), 2 * WINDOW_WIDTH / 4),
-            (self.pila3.0.clone(), 3 * WINDOW_WIDTH / 4),
+            (self.pila3.0.clone(),     WINDOW_WIDTH / 4),
         ];
 
         let y_base = WINDOW_HEIGHT / 3;
         for (pila, x_base) in parelles {
             for (i, bloc) in pila.iter().enumerate() {
-                let val = bloc.val;
-                let col = bloc.color;
-                let width = val * BLOCKS_WIDTH;
+                let width = bloc.val * BLOCKS_WIDTH;
                 let delta_altura = i * BLOCKS_HEIGHT;
-                let altura = BLOCKS_HEIGHT;
-                let top_left = (x_base - width / 2, y_base + delta_altura + altura / 2 );
-                let bottom_right = (x_base + width / 2, y_base + delta_altura - altura / 2 );
 
-                draw_box(&mut buffer, top_left, bottom_right, col);
+                let top_left = (x_base - width / 2, y_base + delta_altura + BLOCKS_HEIGHT / 2 );
+                let bottom_right = (x_base + width / 2, y_base + delta_altura - BLOCKS_HEIGHT / 2 );
+
+                draw_box(&mut buffer, top_left, bottom_right, bloc.color);
             }
             
         }
@@ -95,15 +94,16 @@ impl World {
     }
 
     pub fn resoldre(&mut self, origin: PilaSelect, destinacio: PilaSelect) {
-        self.moure_pila(self.n , origin, destinacio);
+        let gen = &mut String::from("0");
+        self.moure_pila(self.n , origin, destinacio, gen);
+        self.save_to_file(&format!("output/frame_{}.ppm", gen)).ok();
     }
 
-    pub fn moure_pila(&mut self, n: usize, origin: PilaSelect, destinacio: PilaSelect) -> Option<()> {
+    pub fn moure_pila(&mut self, n: usize, origin: PilaSelect, destinacio: PilaSelect, t: &mut String ) -> Option<()> {
         use PilaSelect as Sel;
 
-        //println!("Estic movent block, n: {n}");
         if n == 1 {
-            self.moure_block(origin, destinacio).unwrap();
+            self.moure_block(origin, destinacio, t).unwrap();
         } else {
             let temp_stack = match (origin, destinacio) {
                 (Sel::Pila1, Sel::Pila2) => Sel::Pila3,
@@ -115,23 +115,23 @@ impl World {
                 _ => unreachable!(),
             };
 
-            self.moure_pila(n - 1, origin, temp_stack)?;
-
-            self.moure_block(origin, destinacio)?;
-
-            self.moure_pila(n - 1, temp_stack, destinacio)?;
-
+            self.moure_pila(n - 1, origin, temp_stack, t)?;
+            self.moure_block(origin, destinacio, t)?;
+            self.moure_pila(n - 1, temp_stack, destinacio, t)?;
         }
 
         Some(())
     }
-    pub fn moure_block(&mut self, origin: PilaSelect, destinacio: PilaSelect) -> Option<()>{
+    pub fn moure_block(&mut self, origin: PilaSelect, destinacio: PilaSelect, gen: &mut String) -> Option<()>{
         if origin == destinacio { 
             println!("S'ha intentat moure a la mateixa pila ({origin}-{destinacio})");
             return None; 
         }
 
-        self.save_to_file(&format!("frame{}.ppm", 6)).ok()?;
+        println!("Al guardar '{gen}': {self}");
+        self.save_to_file(&format!("output/frame_{}.ppm", gen)).ok()?;
+        let k: usize = gen.parse().unwrap();
+        *gen = (k + 1).to_string();
 
         let block_origin: Option<&Block> = match origin {
             PilaSelect::Pila1 => self.pila1.0.last(),
@@ -152,7 +152,7 @@ impl World {
                 }
         } 
 
-        println!("{}", &self);
+        //println!("{}", &self);
         let elem = match origin {
             PilaSelect::Pila1 => self.pila1.0.pop(),
             PilaSelect::Pila2 => self.pila2.0.pop(),
