@@ -46,28 +46,48 @@ impl World {
         Ok(())
     }
     pub fn resoldre(&mut self) {
-        self.moure_pila(self.n , PilaSelect::Pila1, PilaSelect::Pila3);
         // Moure pila de n - 1 a la segona pila
         // Mou la base
         // Torna lo altre a la fila 1
         // Repeat recursiu
+        self.moure_pila(self.n , PilaSelect::Pila1, PilaSelect::Pila3);
     }
-    pub fn moure_pila(&mut self, n: usize, origin: PilaSelect, destinacio: PilaSelect) {
+
+    pub fn moure_pila(&mut self, n: usize, origin: PilaSelect, destinacio: PilaSelect) -> Option<()> {
+        use PilaSelect as Sel;
+
+        println!("Estic movent block, n: {n}");
         if n == 1 {
-            println!("Estic movent block, n: {n}");
             self.moure_block(origin, destinacio).unwrap();
         } else {
+            let temp_stack = match (origin, destinacio) {
+                (Sel::Pila1, Sel::Pila2) => Sel::Pila3,
+                (Sel::Pila1, Sel::Pila3) => Sel::Pila2,
+                (Sel::Pila2, Sel::Pila1) => Sel::Pila3,
+                (Sel::Pila2, Sel::Pila3) => Sel::Pila1,
+                (Sel::Pila3, Sel::Pila1) => Sel::Pila2,
+                (Sel::Pila3, Sel::Pila2) => Sel::Pila1,
+                _ => unreachable!(),
+            };
+
             println!("--- pas 1");
-            self.moure_pila(n - 1, PilaSelect::Pila1, PilaSelect::Pila2);
+            self.moure_pila(n - 1, origin, temp_stack)?;
+
             println!("--- pas 2");
-            self.moure_block(PilaSelect::Pila1, PilaSelect::Pila3).unwrap();
+            self.moure_block(origin, destinacio)?;
+
             println!("--- pas 3");
-            self.moure_pila(n - 1, PilaSelect::Pila2, PilaSelect::Pila3);
-            println!("--- pas x");
+            self.moure_pila(n - 1, temp_stack, destinacio)?;
+
         }
+
+        Some(())
     }
     pub fn moure_block(&mut self, origin: PilaSelect, destinacio: PilaSelect) -> Option<()>{
-        if origin == destinacio { return None; }
+        if origin == destinacio { 
+            println!("S'ha intentat moure a la mateixa pila ({origin}-{destinacio})");
+            return None; 
+        }
         let block_origin: Option<&Block> = match origin {
             PilaSelect::Pila1 => self.pila1.0.last(),
             PilaSelect::Pila2 => self.pila2.0.last(),
@@ -81,47 +101,29 @@ impl World {
         };
 
         if let (Some(orig_block), Some(destin_block)) = (block_origin, block_destin) {
-            if orig_block.0 > destin_block.0 { return None; }
+                if orig_block.0 > destin_block.0 {
+                    println!("S'ha intentat moure trencant la Una Norma ({orig_block}>{destin_block})");
+                    return None; 
+                }
+        } 
 
-            println!("Movent: {}", orig_block);
-            println!("{}", &self);
+        println!("{}", &self);
+        let elem = match origin {
+            PilaSelect::Pila1 => self.pila1.0.pop(),
+            PilaSelect::Pila2 => self.pila2.0.pop(),
+            PilaSelect::Pila3 => self.pila3.0.pop(),
+        }.expect(&format!("Error agafant element de la pila: {origin} - {destinacio}"));
 
-            let elem = match origin {
-                PilaSelect::Pila1 => self.pila1.0.pop(),
-                PilaSelect::Pila2 => self.pila2.0.pop(),
-                PilaSelect::Pila3 => self.pila3.0.pop(),
-            }.unwrap();
-
-            match destinacio {
-                PilaSelect::Pila1 => self.pila1.0.push(elem),
-                PilaSelect::Pila2 => self.pila2.0.push(elem),
-                PilaSelect::Pila3 => self.pila3.0.push(elem),
-            }
-
-        } else if let Some(_orig_block) = block_origin {
-            println!("Movent: {}", _orig_block);
-            println!("{}", &self);
-
-            let elem = match origin {
-                PilaSelect::Pila1 => self.pila1.0.pop(),
-                PilaSelect::Pila2 => self.pila2.0.pop(),
-                PilaSelect::Pila3 => self.pila3.0.pop(),
-            }.unwrap();
-
-            match destinacio {
-                PilaSelect::Pila1 => self.pila1.0.push(elem),
-                PilaSelect::Pila2 => self.pila2.0.push(elem),
-                PilaSelect::Pila3 => self.pila3.0.push(elem),
-            }
-        } else {
-            return None;
+        match destinacio {
+            PilaSelect::Pila1 => self.pila1.0.push(elem),
+            PilaSelect::Pila2 => self.pila2.0.push(elem),
+            PilaSelect::Pila3 => self.pila3.0.push(elem),
         }
-
         Some(())
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum PilaSelect {
     Pila1,
     Pila2,
@@ -149,6 +151,16 @@ pub struct Block(usize);
 impl Display for Block {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+impl Display for PilaSelect {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let o = match self {
+            PilaSelect::Pila1 => "Pila A",
+            PilaSelect::Pila2 => "Pila B",
+            PilaSelect::Pila3 => "Pila C",
+        };
+        write!(f, "{}", o)
     }
 }
 impl Display for Pila {

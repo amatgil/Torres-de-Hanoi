@@ -14,6 +14,6 @@ fn main() {
 
     world.resoldre();
 
-    println!("Resolt: {}", world);
+    println!("Estat final: {}", world);
 }
 
