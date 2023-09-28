@@ -1,6 +1,6 @@
-use std::{error::Error, fs::File, io::{BufWriter, Write}, fmt::Display};
+use std::{error::Error, fs::File, io::Write, fmt::Display};
 
-use crate::{WINDOW_HEIGHT, WINDOW_WIDTH, utils::rgb_to_str};
+use crate::{WINDOW_HEIGHT, WINDOW_WIDTH, utils::{rgb_to_str, draw_box}, BARRES_WIDTH, COLORS_SEQ, BLOCKS_WIDTH, BLOCKS_HEIGHT};
 
 
 #[derive(Debug)]
@@ -13,10 +13,14 @@ pub struct World {
 
 impl World {
     pub fn new(n: usize) -> Self {
+        let mut color_idx = 0;
+
         let blocks = {
             let mut v = Vec::new();
             for i in (1..=n).rev() {
-                v.push(Block(i));
+                let color = COLORS_SEQ[color_idx];
+                color_idx = (color_idx + 1) %  COLORS_SEQ.len();
+                v.push(Block{val: i, color});
             }
             v
         };
@@ -30,26 +34,67 @@ impl World {
         s
     }
     pub fn save_to_file(&self, file_name: &str) -> Result<(), Box<dyn Error>> {
-        let file = File::create(file_name)?;
-        let mut buffer = BufWriter::new(file);
+        println!("Guardant: '{}'", file_name);
+        let mut file = File::create(file_name)?;
+        let mut buffer: Vec<String> = Vec::new(); //BufWriter::new(file);
 
-        writeln!(buffer, "P3").unwrap();                                 // Color
-        writeln!(buffer, "{} {}", WINDOW_WIDTH, WINDOW_HEIGHT).unwrap(); // Dimensions
-        writeln!(buffer, "255").unwrap();                                // Max color val
 
         for _ in 0..WINDOW_HEIGHT * WINDOW_WIDTH {
-            writeln!(buffer, "{}", rgb_to_str(128, 128, 128)).unwrap();
+            buffer.push(rgb_to_str(128, 128, 128).to_string());
         }
 
+        let fourth = WINDOW_WIDTH / 4;
+        let horizontal_positions = [fourth, 2 * fourth, 3 * fourth];
 
-        buffer.flush()?;
+        for x in horizontal_positions { // Les barres
+            for dx in -(BARRES_WIDTH as isize) / 2..BARRES_WIDTH as isize / 2 {
+                draw_box(&mut buffer,
+                         ((x as isize + dx) as usize, 2*WINDOW_HEIGHT / 3 ),
+                         ((x as isize + dx) as usize,   WINDOW_HEIGHT / 3 ),
+                         (200, 200, 200)
+                );
+            }
+        }
+
+        let parelles = [
+            (self.pila1.0.clone(),     WINDOW_WIDTH / 4),
+            (self.pila2.0.clone(), 2 * WINDOW_WIDTH / 4),
+            (self.pila3.0.clone(), 3 * WINDOW_WIDTH / 4),
+        ];
+
+        let y_base = WINDOW_HEIGHT / 3;
+        for (pila, x_base) in parelles {
+            for (i, bloc) in pila.iter().enumerate() {
+                let val = bloc.val;
+                let col = bloc.color;
+                let width = val * BLOCKS_WIDTH;
+                let delta_altura = i * BLOCKS_HEIGHT;
+                let altura = BLOCKS_HEIGHT;
+                let top_left = (x_base - width / 2, y_base + delta_altura + altura / 2 );
+                let bottom_right = (x_base + width / 2, y_base + delta_altura - altura / 2 );
+
+                draw_box(&mut buffer, top_left, bottom_right, col);
+            }
+            
+        }
+
+        // ppm spec al reves pq el girarè
+        buffer.push("255\n".to_string());                                          // Max color val
+        buffer.push(format!("{} {}\n", WINDOW_WIDTH, WINDOW_HEIGHT));              // Dimensions
+        buffer.push("P3\n".to_string());                                           // Color
+                                                                                  
+        let bytes: Vec<u8> = buffer.iter() // Vec<String>
+            .rev()
+            .map(|s| s.as_bytes()) // Vec<[u8]>
+            .flatten() // Vec<&u8>
+            .map(|n| *n)
+            .collect(); // Vec<&u8>
+
+        file.write(&bytes)?;
         Ok(())
     }
+
     pub fn resoldre(&mut self, origin: PilaSelect, destinacio: PilaSelect) {
-        // Moure pila de n - 1 a la segona pila
-        // Mou la base
-        // Torna lo altre a la fila 1
-        // Repeat recursiu
         self.moure_pila(self.n , origin, destinacio);
     }
 
@@ -85,6 +130,9 @@ impl World {
             println!("S'ha intentat moure a la mateixa pila ({origin}-{destinacio})");
             return None; 
         }
+
+        self.save_to_file(&format!("frame{}.ppm", 6)).ok()?;
+
         let block_origin: Option<&Block> = match origin {
             PilaSelect::Pila1 => self.pila1.0.last(),
             PilaSelect::Pila2 => self.pila2.0.last(),
@@ -98,7 +146,7 @@ impl World {
         };
 
         if let (Some(orig_block), Some(destin_block)) = (block_origin, block_destin) {
-                if orig_block.0 > destin_block.0 {
+                if orig_block.val > destin_block.val {
                     println!("S'ha intentat moure trencant la Una Norma ({orig_block}>{destin_block})");
                     return None; 
                 }
@@ -142,12 +190,15 @@ impl Pila {
 }
 
 #[derive(PartialEq, PartialOrd, Eq, Ord, Debug, Clone)]
-pub struct Block(usize);
+pub struct Block {
+    val: usize,
+    color: (u8, u8, u8),
+}
 
 
 impl Display for Block {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self.val)
     }
 }
 impl Display for PilaSelect {
