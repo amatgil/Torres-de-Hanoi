@@ -12,7 +12,7 @@ fn main() {
     println!("{}", world);
     //world.moure_block(PilaSelect::Pila1, PilaSelect::Pila2);
 
-    world.resoldre();
+    world.resoldre(PilaSelect::Pila1, PilaSelect::Pila2);
 
     println!("Estat final: {}", world);
 }

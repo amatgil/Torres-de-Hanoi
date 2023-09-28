@@ -45,18 +45,18 @@ impl World {
         buffer.flush()?;
         Ok(())
     }
-    pub fn resoldre(&mut self) {
+    pub fn resoldre(&mut self, origin: PilaSelect, destinacio: PilaSelect) {
         // Moure pila de n - 1 a la segona pila
         // Mou la base
         // Torna lo altre a la fila 1
         // Repeat recursiu
-        self.moure_pila(self.n , PilaSelect::Pila1, PilaSelect::Pila3);
+        self.moure_pila(self.n , origin, destinacio);
     }
 
     pub fn moure_pila(&mut self, n: usize, origin: PilaSelect, destinacio: PilaSelect) -> Option<()> {
         use PilaSelect as Sel;
 
-        println!("Estic movent block, n: {n}");
+        //println!("Estic movent block, n: {n}");
         if n == 1 {
             self.moure_block(origin, destinacio).unwrap();
         } else {
@@ -70,13 +70,10 @@ impl World {
                 _ => unreachable!(),
             };
 
-            println!("--- pas 1");
             self.moure_pila(n - 1, origin, temp_stack)?;
 
-            println!("--- pas 2");
             self.moure_block(origin, destinacio)?;
 
-            println!("--- pas 3");
             self.moure_pila(n - 1, temp_stack, destinacio)?;
 
         }
