@@ -21,7 +21,7 @@ pub const COLORS_SEQ: [(u8, u8, u8); 5] = [
 ];
 
 fn main() {
-    let mut world = World::new(3);
+    let mut world = World::new(9);
 
     println!("{}", world);
 
