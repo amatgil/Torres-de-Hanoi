@@ -1,8 +1,6 @@
 use std::{error::Error, fs::File, io::Write, fmt::Display};
 
-use crate::{WINDOW_HEIGHT, WINDOW_WIDTH, utils::{rgb_to_str, draw_box}, BARRES_WIDTH, COLORS_SEQ, BLOCKS_WIDTH, BLOCKS_HEIGHT};
-
-use std::time::SystemTime;
+use crate::{WINDOW_HEIGHT, WINDOW_WIDTH, utils::{rgb_to_str, draw_box}, BARRES_WIDTH, COLORS_SEQ, BLOCKS_WIDTH, BLOCKS_HEIGHT, BACKGROUND_COL, BARRA_COL};
 
 #[derive(Debug)]
 pub struct World {
@@ -45,39 +43,44 @@ impl World {
             pila2: Pila::default(),
             pila3: Pila::default(),
         };
-
         s
     }
+
     pub fn save_to_file(&self, file_name: &str) -> Result<(), Box<dyn Error>> {
-        println!("Guardant: '{}'", file_name);
+        //print!("{}[2K", 27 as char); // Clear line
+        print!("\rGuardant: '{}'", file_name);
+        std::io::stdout().flush()?;
+
         let mut file = File::create(file_name)?;
         let mut buffer: Vec<String> = Vec::new(); //BufWriter::new(file);
 
-
         for _ in 0..WINDOW_HEIGHT * WINDOW_WIDTH {
-            buffer.push(rgb_to_str(128, 128, 128).to_string());
+            buffer.push(rgb_to_str(BACKGROUND_COL.0, BACKGROUND_COL.1, BACKGROUND_COL.2).to_string());
         }
 
-        let fourth = WINDOW_WIDTH / 4;
-        let horizontal_positions = [fourth, 2 * fourth, 3 * fourth];
+        let eighth = WINDOW_WIDTH / 8;
+        let horizontal_positions = [
+            1 * eighth,
+            4 * eighth,
+            7 * eighth];
 
         for x in horizontal_positions { // Les barres
             for dx in -(BARRES_WIDTH as isize) / 2..BARRES_WIDTH as isize / 2 {
                 draw_box(&mut buffer,
-                         ((x as isize + dx) as usize, 2*WINDOW_HEIGHT / 3 ),
+                         ((x as isize - dx) as usize, 5*WINDOW_HEIGHT / 6 ),
                          ((x as isize + dx) as usize,   WINDOW_HEIGHT / 3 ),
-                         (200, 200, 200)
+                         BARRA_COL
                 );
             }
         }
 
         let parelles = [
-            (self.pila1.0.clone(), 3 * WINDOW_WIDTH / 4),
-            (self.pila2.0.clone(), 2 * WINDOW_WIDTH / 4),
-            (self.pila3.0.clone(),     WINDOW_WIDTH / 4),
+            (&self.pila1.0, horizontal_positions[2]),
+            (&self.pila2.0, horizontal_positions[1]),
+            (&self.pila3.0, horizontal_positions[0]),
         ];
-
         let y_base = WINDOW_HEIGHT / 3;
+
         for (pila, x_base) in parelles {
             for (i, bloc) in pila.iter().enumerate() {
                 let width = bloc.val * BLOCKS_WIDTH;
@@ -139,11 +142,10 @@ impl World {
     }
     pub fn moure_block(&mut self, origin: PilaSelect, destinacio: PilaSelect, gen: &mut Generacio) -> Option<()>{
         if origin == destinacio { 
-            println!("S'ha intentat moure a la mateixa pila ({origin}-{destinacio})");
+            eprintln!("S'ha intentat moure a la mateixa pila ({origin}-{destinacio})");
             return None; 
         }
 
-        println!("Al guardar '{gen}': {self}");
         self.save_to_file(&format!("output/frame_{}.ppm", gen)).ok()?;
         gen.inc();
 
@@ -161,7 +163,7 @@ impl World {
 
         if let (Some(orig_block), Some(destin_block)) = (block_origin, block_destin) {
                 if orig_block.val > destin_block.val {
-                    println!("S'ha intentat moure trencant la Una Norma ({orig_block}>{destin_block})");
+                    eprintln!("S'ha intentat moure trencant la Una Norma ({orig_block}>{destin_block})");
                     return None; 
                 }
         } 
