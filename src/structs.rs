@@ -1,9 +1,11 @@
 use std::{error::Error, fs::File, io::Write, fmt::Display};
 
-use crate::{WINDOW_HEIGHT, WINDOW_WIDTH, utils::{rgb_to_str, draw_box}, BARRES_WIDTH, COLORS_SEQ, BLOCKS_WIDTH, BLOCKS_HEIGHT, BACKGROUND_COL, BARRA_COL};
+use crate::{utils::{rgb_to_str, draw_box}, BARRES_WIDTH, COLORS_SEQ, BLOCKS_WIDTH, BLOCKS_HEIGHT, BACKGROUND_COL, BARRA_COL, BARRES_HEIGHT};
 
 #[derive(Debug)]
 pub struct World {
+    width: usize,
+    height: usize,
     n: usize,
     pila1: Pila,
     pila2: Pila,
@@ -39,6 +41,8 @@ impl World {
         };
         let s = World {
             n,
+            width: n * BLOCKS_WIDTH * 5, 
+            height: n * BLOCKS_HEIGHT * 4,
             pila1: Pila::new(blocks),
             pila2: Pila::default(),
             pila3: Pila::default(),
@@ -46,40 +50,46 @@ impl World {
         s
     }
 
-    pub fn save_to_file(&self, file_name: &str) -> Result<(), Box<dyn Error>> {
-        //print!("{}[2K", 27 as char); // Clear line
+    pub fn save_to_file(&self, gen: &mut Generacio) -> Result<(), Box<dyn Error>> {
+        let file_name = format!("output/frame_{}.ppm", gen);
+        gen.inc();
+
         print!("\rGuardant: '{}'", file_name);
         std::io::stdout().flush()?;
 
-        let mut file = File::create(file_name)?;
-        let mut buffer: Vec<String> = Vec::new(); //BufWriter::new(file);
 
-        for _ in 0..WINDOW_HEIGHT * WINDOW_WIDTH {
+        let mut file = File::create(file_name)?;
+        let mut buffer: Vec<String> = Vec::new(); 
+
+        for _ in 0..self.width * self.height {
             buffer.push(rgb_to_str(BACKGROUND_COL.0, BACKGROUND_COL.1, BACKGROUND_COL.2).to_string());
         }
 
-        let eighth = WINDOW_WIDTH / 8;
+        let eighth = self.width / 8;
         let horizontal_positions = [
             1 * eighth,
             4 * eighth,
             7 * eighth];
 
+        /*
         for x in horizontal_positions { // Les barres
             for dx in -(BARRES_WIDTH as isize) / 2..BARRES_WIDTH as isize / 2 {
                 draw_box(&mut buffer,
-                         ((x as isize - dx) as usize, 5*WINDOW_HEIGHT / 6 ),
-                         ((x as isize + dx) as usize,   WINDOW_HEIGHT / 3 ),
-                         BARRA_COL
+                         ((x as isize - dx) as usize, 3 * self.height / 4),
+                         ((x as isize + dx) as usize,     self.height / 3),
+                         BARRA_COL,
+                         self.width
                 );
             }
         }
+        */
 
         let parelles = [
             (&self.pila1.0, horizontal_positions[2]),
             (&self.pila2.0, horizontal_positions[1]),
             (&self.pila3.0, horizontal_positions[0]),
         ];
-        let y_base = WINDOW_HEIGHT / 3;
+        let y_base = self.height / 3;
 
         for (pila, x_base) in parelles {
             for (i, bloc) in pila.iter().enumerate() {
@@ -89,14 +99,14 @@ impl World {
                 let top_left = (x_base - width / 2, y_base + delta_altura + BLOCKS_HEIGHT / 2 );
                 let bottom_right = (x_base + width / 2, y_base + delta_altura - BLOCKS_HEIGHT / 2 );
 
-                draw_box(&mut buffer, top_left, bottom_right, bloc.color);
+                draw_box(&mut buffer, top_left, bottom_right, bloc.color, self.width);
             }
             
         }
 
         // ppm spec al reves pq el girarè
         buffer.push("255\n".to_string());                                          // Max color val
-        buffer.push(format!("{} {}\n", WINDOW_WIDTH, WINDOW_HEIGHT));              // Dimensions
+        buffer.push(format!("{} {}\n", self.width, self.height));                  // Dimensions
         buffer.push("P3\n".to_string());                                           // Color
                                                                                   
         let bytes: Vec<u8> = buffer.iter() // Vec<String>
@@ -113,8 +123,10 @@ impl World {
     pub fn resoldre(&mut self, origin: PilaSelect, destinacio: PilaSelect) {
         let mut g = 0;
         let mut gen = Generacio(&mut g);
+        for _ in 0..80 { self.save_to_file(&mut gen).ok(); }
         self.moure_pila(self.n , origin, destinacio, &mut gen);
-        self.save_to_file(&format!("output/frame_{}.ppm", gen)).ok();
+        for _ in 0..120 { self.save_to_file(&mut gen).ok(); }
+        println!("Fet!");
     }
 
     pub fn moure_pila(&mut self, n: usize, origin: PilaSelect, destinacio: PilaSelect, t: &mut Generacio ) -> Option<()> {
@@ -146,8 +158,7 @@ impl World {
             return None; 
         }
 
-        self.save_to_file(&format!("output/frame_{}.ppm", gen)).ok()?;
-        gen.inc();
+        self.save_to_file(gen).ok()?;
 
         let block_origin: Option<&Block> = match origin {
             PilaSelect::Pila1 => self.pila1.0.last(),

@@ -3,11 +3,12 @@ use crate::structs::{World, PilaSelect};
 pub mod structs;
 pub mod utils;
 
-const WINDOW_WIDTH: usize = 2000;
-const WINDOW_HEIGHT: usize = 800;
+//const WINDOW_WIDTH: usize = 1700;
+//const WINDOW_HEIGHT: usize = 700;
 
-pub const DESPLAÇAMENT_BARRES: usize = WINDOW_HEIGHT / 6;
+//pub const DESPLAÇAMENT_BARRES: usize = WINDOW_HEIGHT / 6;
 pub const BARRES_WIDTH: usize = 30;
+pub const BARRES_HEIGHT: usize = 666;
 
 pub const BLOCKS_HEIGHT: usize = 10;
 pub const BLOCKS_WIDTH: usize = 30;
@@ -26,7 +27,7 @@ pub const COLORS_SEQ: [(u8, u8, u8); 7] = [
 ];
 
 fn main() {
-    let n = 10_usize;
+    let n = 11_usize;
     let frames =2usize.pow(n as u32) - 1;
     println!("Generant amb {n} blocks. Hi haurà {} frames = {} segons.", frames, frames / 20 );
     let mut world = World::new(n);

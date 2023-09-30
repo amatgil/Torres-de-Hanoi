@@ -1,4 +1,3 @@
-use crate::WINDOW_WIDTH;
 
 
 pub fn idx_to_coords(idx: usize, w: usize) -> (usize, usize) {
@@ -17,7 +16,7 @@ pub fn rgb_to_str(r: u8, g: u8, b: u8) -> String {
 }
 
 pub fn draw_box(buffer: &mut Vec<String>, top_left: (usize, usize),
-            bottom_right: (usize, usize), col: (u8, u8, u8))
+            bottom_right: (usize, usize), col: (u8, u8, u8), w: usize)
 {
     let left_x = top_left.0;
     let right_x = bottom_right.0;
@@ -26,7 +25,7 @@ pub fn draw_box(buffer: &mut Vec<String>, top_left: (usize, usize),
 
     for y in bottom_y..=top_y {
         for x in left_x..=right_x {
-            let idx = coords_to_idx(x, y, WINDOW_WIDTH);
+            let idx = coords_to_idx(x, y, w);
             let color_str = rgb_to_str(col.0, col.1, col.2).to_string();
             buffer[idx] = color_str;
         }
