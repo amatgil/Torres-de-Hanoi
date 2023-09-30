@@ -54,7 +54,7 @@ impl World {
         let file_name = format!("output/frame_{}.ppm", gen);
         gen.inc();
 
-        print!("\rGuardant: '{}'", file_name);
+        print!("\rGuardant '{}' (de {})", file_name, 2_i32.pow(self.n as u32) - 1);
         std::io::stdout().flush()?;
 
 
@@ -124,7 +124,7 @@ impl World {
         let mut g = 0;
         let mut gen = Generacio(&mut g);
         for _ in 0..80 { self.save_to_file(&mut gen).ok(); }
-        self.moure_pila(self.n , origin, destinacio, &mut gen);
+        self.moure_pila(self.n, origin, destinacio, &mut gen);
         for _ in 0..120 { self.save_to_file(&mut gen).ok(); }
         println!("Fet!");
     }
@@ -251,6 +251,7 @@ impl Display for Pila {
         write!(f, "{}", out)
     }
 }
+
 impl Display for World {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let out = {

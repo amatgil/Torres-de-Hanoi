@@ -27,7 +27,11 @@ pub const COLORS_SEQ: [(u8, u8, u8); 7] = [
 ];
 
 fn main() {
-    let n = 11_usize;
+    //let args: Vec<String> = env::args().collect();
+    let n = std::env::args()
+        .nth(1).expect("Te n'has oblidat de donar 'n'")
+        .parse().expect("Recorda que 'n' ha de ser un enter positiu n >= 1");
+
     let frames = 2usize.pow(n as u32) - 1;
     println!("Generant amb {n} blocks. Hi haurà {} frames = {} segons.", frames, frames / 20 );
     let mut world = World::new(n);

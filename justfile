@@ -1,12 +1,9 @@
 
-all:
+all n:
 	mkdir -p output/
 	rm -f output/*
-	cargo run --release
+	cargo run --release -- {{n}}
 	just video
-
-convert:
-	./convert.sh 
 
 video:
 	rm -f output.mp4
