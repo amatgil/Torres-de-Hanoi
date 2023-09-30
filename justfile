@@ -1,9 +1,8 @@
 
 all:
+	mkdir -p output/
 	rm -f output/*
-	rm -f output_png/*
 	cargo run --release
-	#just convert
 	just video
 
 convert:
@@ -18,5 +17,5 @@ make_loop:
 	ffmpeg -stream_loop 3 -i output.mp4 -c h264_qsv output_looped.mp4
 
 clean:
-	cargo claen
+	cargo clean
 	rm -f output/*

@@ -28,7 +28,7 @@ pub const COLORS_SEQ: [(u8, u8, u8); 7] = [
 
 fn main() {
     let n = 11_usize;
-    let frames =2usize.pow(n as u32) - 1;
+    let frames = 2usize.pow(n as u32) - 1;
     println!("Generant amb {n} blocks. Hi haurà {} frames = {} segons.", frames, frames / 20 );
     let mut world = World::new(n);
 
