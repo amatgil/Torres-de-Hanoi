@@ -13,6 +13,7 @@ Amb n = 8 (8 blocks, 255 moviments, ~4 segons a 60fps)
 ```bash
 just all 8 
 ```
+La sortida serà `output.mp4`.
 
 # Com funciona
 Rust obre dos threads:
