@@ -1,5 +1,3 @@
-
-
 pub fn idx_to_coords(idx: usize, w: usize) -> (usize, usize) {
     (
         idx % w,

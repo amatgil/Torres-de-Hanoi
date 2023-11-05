@@ -1,20 +1,18 @@
-use crate::structs::{World, PilaSelect};
+use crate::structs::{World, StackSelect};
 
 pub mod structs;
 pub mod utils;
 
-//const WINDOW_WIDTH: usize = 1700;
-//const WINDOW_HEIGHT: usize = 700;
-
-//pub const DESPLAÇAMENT_BARRES: usize = WINDOW_HEIGHT / 6;
-pub const BARRES_WIDTH: usize = 30;
-pub const BARRES_HEIGHT: usize = 666;
+pub const BARS_WIDTH: usize = 30;
+pub const BARS_HEIGHT: usize = 666;
 
 pub const BLOCKS_HEIGHT: usize = 10;
 pub const BLOCKS_WIDTH: usize = 30;
 
 pub const BACKGROUND_COL: (u8, u8, u8) = (73, 77, 100);
-pub const BARRA_COL: (u8, u8, u8) = (184, 192, 224);
+pub const BARS_COL: (u8, u8, u8) = (184, 192, 224);
+
+pub const FRAMERATE: usize = 60; // Defined in the justfile, given to ffmpeg
 
 pub const COLORS_SEQ: [(u8, u8, u8); 7] = [
     (245, 189, 230),
@@ -27,18 +25,17 @@ pub const COLORS_SEQ: [(u8, u8, u8); 7] = [
 ];
 
 fn main() {
-    //let args: Vec<String> = env::args().collect();
     let n = std::env::args()
-        .nth(1).expect("Te n'has oblidat de donar 'n'")
-        .parse().expect("Recorda que 'n' ha de ser un enter positiu n >= 1");
+        .nth(1).expect("ERROR: Forgot to provide 'n'")
+        .parse().expect("Remember that 'n' must be a positive natural **NUMBER** (n >= 1)");
 
     let frames = 2usize.pow(n as u32) - 1;
-    println!("Generant amb {n} blocks. Hi haurà {} frames = {} segons.", frames, frames / 20 );
+    println!("Generating with {n} blocks, meaning ~{} frames == ~{} seconds.", frames, frames / FRAMERATE );
     let mut world = World::new(n);
 
     println!("{}", world);
 
-    world.resoldre(PilaSelect::Pila1, PilaSelect::Pila3);
+    world.resoldre(StackSelect::Stack1, StackSelect::Stack3);
 
     println!("Estat final: {}", world);
 }

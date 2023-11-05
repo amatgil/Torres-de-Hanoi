@@ -1,4 +1,18 @@
 
+web n:
+	just all_webm {{n}}
+	cp output.webm per_a_web/hanoi_render_{{n}}.webm
+
+all_webm n:
+	mkdir -p output/
+	rm -f output/*
+	cargo run --release -- {{n}}
+	just video_webm
+
+video_webm:
+	rm -f output.webm
+	ffmpeg -framerate 60 -i output/frame_%06d.ppm -deadline realtime -threads 13 output.webm
+
 all n:
 	mkdir -p output/
 	rm -f output/*
