@@ -120,7 +120,7 @@ impl World {
         use StackSelect as Sel;
 
         if n == 1 {
-            self.moure_block(origin, destination, t).unwrap();
+            self.move_block(origin, destination, t).unwrap();
         } else {
             let temp_stack = match (origin, destination) {
                 (Sel::Stack1, Sel::Stack2) => Sel::Stack3,
@@ -133,13 +133,13 @@ impl World {
             };
 
             self.move_stack(n - 1, origin, temp_stack, t)?;
-            self.moure_block(origin, destination, t)?;
+            self.move_block(origin, destination, t)?;
             self.move_stack(n - 1, temp_stack, destination, t)?;
         }
 
         Some(())
     }
-    pub fn moure_block(&mut self, origin: StackSelect, destination: StackSelect, gen: &mut Generation) -> Option<()>{
+    pub fn move_block(&mut self, origin: StackSelect, destination: StackSelect, gen: &mut Generation) -> Option<()>{
         if origin == destination { 
             eprintln!("Attempted to move a block to its own pile ({origin}-{destination})");
             return None; 
