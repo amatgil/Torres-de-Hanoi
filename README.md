@@ -7,7 +7,7 @@ The outputs generated from `n` in `[1, 12]` may be seen under [my website](https
 Basic instructions are included in the `justfile`. The main command is `just all [n]`, which 
 - creates output folders
 - executes rust (which will ask for `n`), generating all `*.ppm` files
-- use fmmpeg to join all `*.ppm`s into a single `output.mp4`
+- uses fmmpeg to join all `*.ppm`s into a single `output.mp4`
 
 Do note that the `output.mp4` has been set to play at 60fps, but this may be too slow for high `n`.
 It may be adjusted in the `justfile`:

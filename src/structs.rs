@@ -1,6 +1,6 @@
 use std::{error::Error, fs::File, io::Write, fmt::Display};
 
-use crate::{utils::{rgb_to_str, draw_box}, COLORS_SEQ, BLOCKS_WIDTH, BLOCKS_HEIGHT, BACKGROUND_COL};
+use crate::{utils::{rgb_to_str, draw_box}, COLORS_SEQ, BLOCKS_WIDTH, BLOCKS_HEIGHT, BACKGROUND_COL, FROZEN_FRAMES_START, FROZEN_FRAMES_END, FROZEN_FRAMES_NUMBER};
 
 #[derive(Debug)]
 pub struct World {
@@ -52,7 +52,7 @@ impl World {
         let file_name = format!("output/frame_{}.ppm", gen);
         gen.inc();
 
-        print!("\rSaving '{}' (of {})", file_name, 2_i32.pow(self.n as u32) - 1);
+        print!("\rSaving '{}' (of {})", file_name, 2_i32.pow(self.n as u32) - 1 + FROZEN_FRAMES_NUMBER as i32);
         std::io::stdout().flush()?;
 
 
@@ -107,12 +107,12 @@ impl World {
         Ok(())
     }
 
-    pub fn resoldre(&mut self, origin: StackSelect, destination: StackSelect) {
+    pub fn solve(&mut self, origin: StackSelect, destination: StackSelect) {
         let mut g = 0;
         let mut gen = Generation(&mut g);
-        for _ in 0..80 { self.save_to_file(&mut gen).ok(); }
+        for _ in 0..FROZEN_FRAMES_START { self.save_to_file(&mut gen).ok(); }
         self.move_stack(self.n, origin, destination, &mut gen);
-        for _ in 0..120 { self.save_to_file(&mut gen).ok(); }
+        for _ in 0..FROZEN_FRAMES_END { self.save_to_file(&mut gen).ok(); }
         println!("Done!");
     }
 
